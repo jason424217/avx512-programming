@@ -203,7 +203,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 
     /* YOUR CODE HERE */
   while(_mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT) > 0){
-    amid = _mm512_div_epu64(_mm512_add_epi64(aleft, aright), aTwo);
+    amid = _mm512_div_epi64(_mm512_add_epi64(aleft, aright), aTwo);
     __m512i amidPlusOne = _mm512_add_epi64(amid, aOne);
 
     __m512i RightXorMid = _mm512_xor_epi64(aright, amid);
@@ -211,8 +211,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 
     int64_t mid[8];
     _mm512_storeu_si512(mid, amid);
-    __m512i dataAmid = _mm512_set_epi64(data[mid[7]], data[mid[6]], data[mid[5]], data[mid[4]]
-    data[mid[3]], data[mid[2]], data[mid[1]], data[mid[0]]);
+    __m512i dataAmid = _mm512_set_epi64(data[mid[7]], data[mid[6]], data[mid[5]], data[mid[4]], data[mid[3]], data[mid[2]], data[mid[1]], data[mid[0]]);
     //data[mid[i]]>=searchkey[i]
     __m512i dataAmid_CmpNLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
     searchkey, _MM_CMPINT_NLT), dataAmid, searchkey);
@@ -232,8 +231,8 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     //right[i] ^ ((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)));
     __m512i arightTemp = _mm512_xor_epi64(aright, afterRightIf);
     __m512i aleftTemp = _mm512_xor_epi64(aleft, afterLeftIf);
-    aright = arightTemp
-    aleft = aleftTemp
+    aright = arightTemp;
+    aleft = aleftTemp;
   }
 }
 
