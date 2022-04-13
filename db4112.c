@@ -269,7 +269,8 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
     }
   }
 printf("Success");
-End: return
+End: 
+  ;
 }
 	 
 void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
