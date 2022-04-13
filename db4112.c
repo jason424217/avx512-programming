@@ -259,7 +259,9 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
       bool res = results[i] == r2 == r3;
 #ifdef DEBUG
       printf("Result is %ld\n",results[i]);
-      printf("The compared result is %d", res);
+      printf("Result2 is %ld\n",r2);
+      printf("Result3 is %ld\n",r3);
+      printf("The compared result is %d\\", res);
 #endif
     }
   }
