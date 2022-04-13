@@ -17,7 +17,7 @@
 #include <immintrin.h>
 
 /* uncomment out the following line for debug info during run */
-// #define DEBUG
+#define DEBUG
 
 /* compare two int64_t values - for use with qsort */
 static int compare(const void *p1, const void *p2)
@@ -285,11 +285,11 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
       // Uncomment one of the following depending on which routine you want to profile
 
       // Algorithm A
-       lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
+      //lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
 
       // Algorithm B
-      //searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
-      //lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
+      lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
       
 #ifdef DEBUG
       printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
