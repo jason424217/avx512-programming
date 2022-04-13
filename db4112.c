@@ -236,7 +236,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 #endif
     __m512i dataAmid = _mm512_set_epi64(data[mid[7]], data[mid[6]], data[mid[5]], data[mid[4]], data[mid[3]], data[mid[2]], data[mid[1]], data[mid[0]]);
     //data[mid[i]]>=searchkey[i]
-    printavx("mid",dataAmid);
+    //printavx("mid",dataAmid);
     __m512i dataAmid_CmpNLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
     searchkey, _MM_CMPINT_NLT), aOne, aZero);
     __m512i dataAmid_CmpLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
@@ -339,10 +339,10 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
       }
 #endif
 
-      lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
+      //lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
       // Algorithm B
-      //searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
-      //lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
+      lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
       
 #ifdef DEBUG
       printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
@@ -350,8 +350,10 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
 #endif
 
 #ifdef DEBUG_COMPARE
+      printf("sampleAns is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
+	     sampleAns[0],sampleAns[1],sampleAns[2],sampleAns[3],sampleAns[4],sampleAns[5],sampleAns[6],sampleAns[7]);
       for(int jj = 0; jj < 8; jj++){
-        resb = results[i+jj] == sampleAns[i+jj];
+        resb = results[i+jj] == sampleAns[jj];
         if(!resb){
           printf("FAILED with lower_bound_nb_mask_8x\n");
           goto End;
