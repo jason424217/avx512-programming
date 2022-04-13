@@ -197,6 +197,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
   __m512i amid;
 
   //constant
+  __m512i aZero = _mm512_set1_epi64(0);
   __m512i aOne = _mm512_set1_epi64(1);
   __m512i aTwo = _mm512_set1_epi64(2);
   __m512i aNOne = _mm512_set1_epi64(-1);
@@ -219,12 +220,13 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 #ifdef DEBUG
     int64_t left[8];
     int64_t right[8];
+    int64_t midTemp[8];
     _mm512_storeu_si512(left, aleft);
     _mm512_storeu_si512(right, aright);
     for(int i = 0; i < 8; i++){
-      int64_t midTemp = (left[i] + right[i]) / 2;
-      if(mid[i] != midTemp){
-        printf("mid calculation failed with right mid: %ld and our mid: %ld!!!!!\n", midTemp, mid[i]);
+      midTemp[i] = (left[i] + right[i]) / 2;
+      if(mid[i] != midTemp[i]){
+        printf("mid calculation failed with right mid: %ld and our mid: %ld!!!!!\n", midTemp[i], mid[i]);
         goto End;
       }
     }
@@ -233,9 +235,12 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     //data[mid[i]]>=searchkey[i]
     printavx("mid",dataAmid);
     __m512i dataAmid_CmpNLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
-    searchkey, _MM_CMPINT_NLT), dataAmid, searchkey);
+    searchkey, _MM_CMPINT_NLT), aOne, aZero);
     __m512i dataAmid_CmpLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
-    searchkey, _MM_CMPINT_LT), dataAmid, searchkey);
+    searchkey, _MM_CMPINT_LT), aOne, aZero);
+#ifdef DEBUG
+    
+#endif
     
     //((data[mid[i]]>=searchkey[i])-1)
     __m512i rightIf = _mm512_add_epi64(dataAmid_CmpNLT_SearchKey, aNOne);
