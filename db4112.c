@@ -19,7 +19,7 @@
 
 /* uncomment out the following line for debug info during run */
 //#define DEBUG
-#define DEBUG_COMPARE
+//#define DEBUG_COMPARE
 
 /* compare two int64_t values - for use with qsort */
 static int compare(const void *p1, const void *p2)
@@ -268,7 +268,7 @@ End:
   ;
 }
 
-void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
+void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats, int type)
 {
   bool res = false;
   for(int j=0; j<repeats; j++) {
@@ -285,7 +285,13 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
 #endif
 
       // Uncomment one of the following to measure it
-      results[i] = lower_bound(data,size,searchkeys[i]);
+      if(type == 0){
+        results[i] = lower_bound(data,size,searchkeys[i]);
+      }else if(type == 1){
+        results[i] = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
+      }else{
+        results[i] = lower_bound_nb_mask(data,size,searchkeys[i]);
+      }
 #ifdef DEBUG
       printf("Result is %ld\n",results[i]);
 #endif
@@ -309,7 +315,7 @@ End:
 #endif
 }
 	 
-void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
+void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats, int type)
 {
   register __m512i searchkey_8x;
   bool resb = false;
@@ -338,12 +344,13 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
         sampleAns[jj] = lower_bound(data,size,searchkeys[i+jj]);
       }
 #endif
-
-      //lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
-      // Algorithm B
-      searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
-      lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
-      
+      if(type == 0){
+        lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
+      }else{
+        // Algorithm B
+        searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
+        lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      }
 #ifdef DEBUG
       printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
 	     results[i],results[i+1],results[i+2],results[i+3],results[i+4],results[i+5],results[i+6],results[i+7]);
@@ -528,21 +535,44 @@ main(int argc, char *argv[])
 	   gettimeofday(&before,NULL);
 
 	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search(data,arraysize,queries,arraysize,results, repeats);
+	   bulk_binary_search(data,arraysize,queries,arraysize,results, repeats, 0);
 			      
 	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search loop is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+	   printf("Time in bulk_binary_search loop normal is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
+	   gettimeofday(&before,NULL);
+
+	   /* the code that you want to measure goes here; make a function call */
+	   bulk_binary_search(data,arraysize,queries,arraysize,results, repeats, 1);
+			      
+	   gettimeofday(&after,NULL);
+	   printf("Time in bulk_binary_search loop arithmetic is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+
+	   gettimeofday(&before,NULL);
+
+	   /* the code that you want to measure goes here; make a function call */
+	   bulk_binary_search(data,arraysize,queries,arraysize,results, repeats, 2);
+			      
+	   gettimeofday(&after,NULL);
+	   printf("Time in bulk_binary_search loop mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
 
 	   gettimeofday(&before,NULL);
 
 	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_8x(data,arraysize,queries,arraysize,results, repeats);
+	   bulk_binary_search_8x(data,arraysize,queries,arraysize,results, repeats, 0);
 			      
 	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search_8x loop is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+	   printf("Time in bulk_binary_search_8x loop normal mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
+
+	   gettimeofday(&before,NULL);
+
+	   /* the code that you want to measure goes here; make a function call */
+	   bulk_binary_search_8x(data,arraysize,queries,arraysize,results, repeats, 1);
+			      
+	   gettimeofday(&after,NULL);
+	   printf("Time in bulk_binary_search_8x loop AVX512 is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
 	   
 	   gettimeofday(&before,NULL);
