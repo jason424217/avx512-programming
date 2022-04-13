@@ -203,8 +203,8 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 
     /* YOUR CODE HERE */
   while(1){
-    __m512i check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
-    printavx("check", check)
+    short check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
+    printf("check:%d", check);
     if(check <= 0){
       break;
     }
@@ -222,7 +222,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     _mm512_storeu_si512(left, aleft);
     _mm512_storeu_si512(right, aright);
     for(int i = 0; i < 8; i++){
-      int64_t midTemp = (left + right) / 2;
+      int64_t midTemp = (left[i] + right[i]) / 2;
       if(mid[i] != midTemp){
         printf("mid calculation failed with right mid: %ld and our mid: %ld!!!!!\n", midTemp, mid[i]);
         goto End;
@@ -321,11 +321,11 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
       // Uncomment one of the following depending on which routine you want to profile
 
       // Algorithm A
-      lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
+      //lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
 
       // Algorithm B
-      // searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
-      // lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
+      lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
       
 #ifdef DEBUG
       printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
