@@ -15,6 +15,7 @@
 #include <sys/time.h>
 #include <asm/unistd.h>
 #include <immintrin.h>
+#include <stdbool.h>
 
 /* uncomment out the following line for debug info during run */
 #define DEBUG
@@ -252,12 +253,13 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
 #endif
 
       // Uncomment one of the following to measure it
-      //results[i] = lower_bound(data,size,searchkeys[i]);
-      //results[i] = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
-      results[i] = lower_bound_nb_mask(data,size,searchkeys[i]);
-      
+      results[i] = lower_bound(data,size,searchkeys[i]);
+      int r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
+      int r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
+      bool res = results[i] == r2 == r3;
 #ifdef DEBUG
       printf("Result is %ld\n",results[i]);
+      printf("The compared result is %d", res);
 #endif
     }
   }
