@@ -239,6 +239,7 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 
 void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
 {
+  bool res = false;
   for(int j=0; j<repeats; j++) {
     /* Function to test a large number of binary searches
 
@@ -256,14 +257,19 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
       results[i] = lower_bound(data,size,searchkeys[i]);
       int64_t r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
       int64_t r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
-      printf("Result is %d, %d\n ",results[i] == r2, r2 == r3);
-      bool res = (results[i] == r2) && (r2 == r3);
+      res = (results[i] == r2) && (r2 == r3);
 #ifdef DEBUG
-      printf("Result is %ld\n",results[i]);
+      printf("Result is %ld\t",results[i]);
       printf("The compared result is %d\n", res);
 #endif
+      if(!res){
+        printf("failed");
+        goto End;
+      }
     }
   }
+printf("Success");
+End: return
 }
 	 
 void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
