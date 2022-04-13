@@ -204,11 +204,11 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     /* YOUR CODE HERE */
   while(1){
     short check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
-    printf("check:%d", check);
+    printf("check:%d\n", check);
     if(check <= 0){
       break;
     }
-    amid = _mm512_srlv_epi64(_mm512_add_epi64(aleft, aright), aTwo);
+    amid = _mm512_srlv_epi64(_mm512_add_epi64(aleft, aright), aOne);
     __m512i amidPlusOne = _mm512_add_epi64(amid, aOne);
 
     __m512i RightXorMid = _mm512_xor_epi64(aright, amid);
