@@ -205,7 +205,9 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     /* YOUR CODE HERE */
   while(1){
     short check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
+#ifdef DEBUG
     printf("check:%d\n", check);
+#endif
     if(check <= 0){
       break;
     }
@@ -238,28 +240,25 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     searchkey, _MM_CMPINT_NLT), aOne, aZero);
     __m512i dataAmid_CmpLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
     searchkey, _MM_CMPINT_LT), aOne, aZero);
-#ifdef DEBUG
-    
-#endif
     
     //((data[mid[i]]>=searchkey[i])-1)
     __m512i rightIf = _mm512_add_epi64(dataAmid_CmpNLT_SearchKey, aNOne);
     //printavx("rightif",rightIf);
     //((data[mid[i]]<searchkey[i])-1))
     __m512i leftIf = _mm512_add_epi64(dataAmid_CmpLT_SearchKey, aNOne);
+#ifdef DEBUG
     printavx("LT_SearchKey",dataAmid_CmpLT_SearchKey);
     printavx("leftIf",leftIf);
+#endif
 
 
     //((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)))
     __m512i afterRightIf =_mm512_andnot_epi64(rightIf, RightXorMid);
     __m512i afterLeftIf =_mm512_andnot_epi64(leftIf, LeftXorMid);
-    printavx("afterLeftIf",afterLeftIf);
     //right[i] ^ ((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)));
     __m512i arightTemp = _mm512_xor_epi64(aright, afterRightIf);
     __m512i aleftTemp = _mm512_xor_epi64(aleft, afterLeftIf);
 
-    printavx("aleftTemp",aleftTemp);
     aright = arightTemp;
     aleft = aleftTemp;
   }
@@ -286,27 +285,31 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
 
       // Uncomment one of the following to measure it
       results[i] = lower_bound(data,size,searchkeys[i]);
+      printf("Result is %ld\n",results[i]);
+#ifdef DEBUG
       int64_t r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
       int64_t r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
       res = (results[i] == r2) && (r2 == r3);
-#ifdef DEBUG
-      printf("Result is %ld\t",results[i]);
       printf("The compared result is %d\n", res);
-#endif
       if(!res){
         printf("FAILED\n");
         goto End;
       }
+#endif
     }
   }
+
+#ifdef DEBUG
 printf("Success\n");
 End: 
   ;
+#endif
 }
 	 
 void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
 {
   register __m512i searchkey_8x;
+  bool resb = false;
   
   for(int j=0; j<repeats; j++) {
     /* Function to test a large number of binary searches using one of the 8x routines
@@ -321,16 +324,31 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
 #ifdef DEBUG
       printf("Searching for %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
 	     searchkeys[i],searchkeys[i+1],searchkeys[i+2],searchkeys[i+3],searchkeys[i+4],searchkeys[i+5],searchkeys[i+6],searchkeys[i+7]);
-#endif
       
       // Uncomment one of the following depending on which routine you want to profile
 
       // Algorithm A
-      //lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
+      int64_t sampleAns[8];
 
+      for(int jj = 0; jj < 8; jj++){
+        sampleAns[i] = lower_bound(data,size,searchkeys[i+jj]);
+      }
+#endif
+
+
+      lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
       // Algorithm B
-      searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
-      lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      //searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
+      //lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+#ifdef DEBUG
+      for(int jj = 0; jj < 8; jj++){
+        resb = results[i+j] == sampleAns[i+j];
+        if(!resb){
+          printf("FAILED with lower_bound_nb_mask_8x\n");
+          goto End;
+        }
+      }
+#endif
       
 #ifdef DEBUG
       printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
@@ -343,8 +361,13 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
       results[i] = lower_bound_nb_mask(data,size,searchkeys[i]);
       
     }
-
   }
+
+#ifdef DEBUG
+  printf("bulk_binary_search_8x Successfully\n");
+End:
+  ;
+#endif
 }
 
 int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t size, int64_t* outer_results, int64_t* inner_results, int64_t result_size, int64_t bound)
