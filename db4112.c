@@ -203,7 +203,12 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
 
 
     /* YOUR CODE HERE */
-  while(_mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT) > 0){
+  while(1){
+    __m512i check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
+    printavx("check", check)
+    if(check <= 0){
+      break;
+    }
     amid = _mm512_srlv_epi64(_mm512_add_epi64(aleft, aright), aTwo);
     __m512i amidPlusOne = _mm512_add_epi64(amid, aOne);
 
@@ -221,8 +226,10 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
     
     //((data[mid[i]]>=searchkey[i])-1)
     __m512i rightIf = _mm512_add_epi64(dataAmid_CmpNLT_SearchKey, aNOne);
+    printavx("rightif",rightIf);
     //((data[mid[i]]<searchkey[i])-1))
     __m512i leftIf = _mm512_add_epi64(dataAmid_CmpLT_SearchKey, aNOne);
+    printavx("rightif",rightIf);
 
 
     //((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)))
@@ -263,12 +270,12 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
       printf("The compared result is %d\n", res);
 #endif
       if(!res){
-        printf("failed");
+        printf("FAILED\n");
         goto End;
       }
     }
   }
-printf("Success");
+printf("Success\n");
 End: 
   ;
 }
