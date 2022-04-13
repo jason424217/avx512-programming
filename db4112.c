@@ -19,7 +19,7 @@
 
 /* uncomment out the following line for debug info during run */
 //#define DEBUG
-#define DEBUG_COMPARE
+//#define DEBUG_COMPARE
 
 /* compare two int64_t values - for use with qsort */
 static int compare(const void *p1, const void *p2)
@@ -466,8 +466,8 @@ void bulk_binary_search_8x_type(int64_t* data, int64_t size, int64_t* searchkeys
 #endif
 
 #ifdef DEBUG_COMPARE
-      printf("sampleAns is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
-	     sampleAns[0],sampleAns[1],sampleAns[2],sampleAns[3],sampleAns[4],sampleAns[5],sampleAns[6],sampleAns[7]);
+      //printf("sampleAns is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
+	//     sampleAns[0],sampleAns[1],sampleAns[2],sampleAns[3],sampleAns[4],sampleAns[5],sampleAns[6],sampleAns[7]);
       for(int jj = 0; jj < 8; jj++){
         resb = results[i+jj] == sampleAns[jj];
         if(!resb){
