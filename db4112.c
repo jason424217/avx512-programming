@@ -254,14 +254,13 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
 
       // Uncomment one of the following to measure it
       results[i] = lower_bound(data,size,searchkeys[i]);
-      int r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
-      int r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
-      bool res = results[i] == r2 == r3;
+      int64_t r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
+      int64_t r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
+      printf("Result is %d, %d\n ",results[i] == r2, r2 == r3);
+      bool res = (results[i] == r2) && (r2 == r3);
 #ifdef DEBUG
       printf("Result is %ld\n",results[i]);
-      printf("Result2 is %ld\n",r2);
-      printf("Result3 is %ld\n",r3);
-      printf("The compared result is %d\\", res);
+      printf("The compared result is %d\n", res);
 #endif
     }
   }
