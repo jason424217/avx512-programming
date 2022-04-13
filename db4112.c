@@ -18,7 +18,8 @@
 #include <stdbool.h>
 
 /* uncomment out the following line for debug info during run */
-#define DEBUG
+//#define DEBUG
+#define DEBUG_COMPARE
 
 /* compare two int64_t values - for use with qsort */
 static int compare(const void *p1, const void *p2)
@@ -285,12 +286,14 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
 
       // Uncomment one of the following to measure it
       results[i] = lower_bound(data,size,searchkeys[i]);
-      printf("Result is %ld\n",results[i]);
 #ifdef DEBUG
+      printf("Result is %ld\n",results[i]);
+#endif
+#ifdef DEBUG_COMPARE
       int64_t r2 = lower_bound_nb_arithmetic(data,size,searchkeys[i]);
       int64_t r3 = lower_bound_nb_mask(data,size,searchkeys[i]);
       res = (results[i] == r2) && (r2 == r3);
-      printf("The compared result is %d\n", res);
+      //printf("The compared result is %d\n", res);
       if(!res){
         printf("FAILED\n");
         goto End;
@@ -299,7 +302,7 @@ void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_
     }
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_COMPARE
 printf("Success\n");
 End: 
   ;
@@ -324,35 +327,36 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
 #ifdef DEBUG
       printf("Searching for %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
 	     searchkeys[i],searchkeys[i+1],searchkeys[i+2],searchkeys[i+3],searchkeys[i+4],searchkeys[i+5],searchkeys[i+6],searchkeys[i+7]);
-      
+#endif      
       // Uncomment one of the following depending on which routine you want to profile
 
       // Algorithm A
-      int64_t sampleAns[8];
 
+#ifdef DEBUG_COMPARE
+      int64_t sampleAns[8];
       for(int jj = 0; jj < 8; jj++){
-        sampleAns[i] = lower_bound(data,size,searchkeys[i+jj]);
+        sampleAns[jj] = lower_bound(data,size,searchkeys[i+jj]);
       }
 #endif
-
 
       lower_bound_nb_mask_8x(data,size,&searchkeys[i],&results[i]);
       // Algorithm B
       //searchkey_8x = _mm512_load_epi64(&searchkeys[i]);
       //lower_bound_nb_mask_8x_AVX512(data,size,searchkey_8x,(__m512i*) &results[i]);
+      
 #ifdef DEBUG
+      printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
+	     results[i],results[i+1],results[i+2],results[i+3],results[i+4],results[i+5],results[i+6],results[i+7]);
+#endif
+
+#ifdef DEBUG_COMPARE
       for(int jj = 0; jj < 8; jj++){
-        resb = results[i+j] == sampleAns[i+j];
+        resb = results[i+jj] == sampleAns[i+jj];
         if(!resb){
           printf("FAILED with lower_bound_nb_mask_8x\n");
           goto End;
         }
       }
-#endif
-      
-#ifdef DEBUG
-      printf("Result is %ld %ld %ld %ld %ld %ld %ld %ld ...\n",
-	     results[i],results[i+1],results[i+2],results[i+3],results[i+4],results[i+5],results[i+6],results[i+7]);
 #endif
     }
     /* a little bit more work if numsearches is not a multiple of 8 */
@@ -363,7 +367,7 @@ void bulk_binary_search_8x(int64_t* data, int64_t size, int64_t* searchkeys, int
     }
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_COMPARE
   printf("bulk_binary_search_8x Successfully\n");
 End:
   ;
