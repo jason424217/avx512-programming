@@ -104,10 +104,9 @@ inline int64_t lower_bound_nb_arithmetic(int64_t* data, int64_t size, int64_t se
   
   while(left<right) {
     mid = (left + right)/2;   /* ignore possibility of overflow of left+right */
-
-    /* YOUR CODE HERE */
-    right = right * (data[mid]<searchkey) + mid * (data[mid]>=searchkey);
-    left = left * (data[mid]>=searchkey) + (mid+1) * (data[mid]<searchkey);
+    int64_t test = (data[mid]>=searchkey);
+    right=mid*test + right*(1-test);
+    left=(mid+1)*(1-test) + left*test;
   }
   return right;
 }
@@ -128,10 +127,9 @@ inline int64_t lower_bound_nb_mask(int64_t* data, int64_t size, int64_t searchke
   
   while(left<right) {
     mid = (left + right)/2;   /* ignore possibility of overflow of left+right */
-
-    /* YOUR CODE HERE */
-    right = right ^ ((right ^ mid) & (~((data[mid]>=searchkey)-1)));
-    left = left ^ ((left ^ (mid+1)) & (~((data[mid]<searchkey)-1)));
+    uint64_t test_mask = (data[mid]>=searchkey)-1; /* boolean 1 becomes mask of 0, boolean 0 becomes mask of 0xFFFFFFFFFFFFFFFF */
+    right=(mid&(~test_mask)) | (right&test_mask);
+    left=((mid+1)&test_mask) | (left& ~test_mask);
   }
   return right;
 }
@@ -147,19 +145,27 @@ inline void lower_bound_nb_mask_8x(int64_t* data, int64_t size, int64_t* searchk
      (d) does 8 searches at the same time in an interleaved fashion, so that an out-of-order processor
          can make progress even when some instructions are still waiting for their operands to be ready.
 
-     Note that we're using the result array as the "right" elements in the search so no need for a return statement
+     Note that we're using the result array as the "right" elements in the search
   */
   int64_t left[8]={0,0,0,0,0,0,0,0};
   int64_t mid[8];
+  uint64_t test_mask[8];
   right[0]=right[1]=right[2]=right[3]=right[4]=right[5]=right[6]=right[7]=size;
-
-  while(left[0]<right[0] || left[1]<right[1] || left[2]<right[2] || left[3]<right[3] || 
-  left[4]<right[4] || left[5]<right[5] || left[6]<right[6] || left[7]<right[7]){
-    for(int i=0; i < 8; i++){
-      mid[i] = (left[i] + right[i])/2;
-      right[i] = right[i] ^ ((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)));
-      left[i] = left[i] ^ ((left[i] ^ (mid[i]+1)) & (~((data[mid[i]]<searchkey[i])-1)));
+  
+  while(left[0]<right[0] || left[1]<right[1] || left[2]<right[2] || left[3]<right[3] ||
+	left[4]<right[4] || left[5]<right[5] || left[6]<right[6] || left[7]<right[7]) {
+    for(int s=0;s<8;s++) {
+      /* an optimizing compiler might help here by (a) unrolling the loop, and (b) automatically using SIMD instructions.
+	 also, cache misses might be overlapped given an out-of-order processor
+       */
+      mid[s] = (left[s] + right[s])/2;   /* ignore possibility of overflow of left+right */
+      test_mask[s] = (data[mid[s]]>=searchkey[s])-1; /* boolean 1 becomes mask of 0, boolean 0 becomes mask of 0xFFFFFFFFFFFFFFFF */
+      right[s]=(mid[s]&(~test_mask[s])) | (right[s]&test_mask[s]);
+      left[s]=((mid[s]+1)&test_mask[s]) | (left[s]& ~test_mask[s]);
     }
+    /* Don't need to return anything because the result elements are already in the "right" array, which corresponds to
+       the result array in the calling context
+    */
   }
 }
 
@@ -194,79 +200,35 @@ inline void lower_bound_nb_mask_8x_AVX512(int64_t* data, int64_t size, __m512i s
   */
 
   __m512i aleft = _mm512_set1_epi64(0);
-  __m512i aright = _mm512_set1_epi64(size);
+  __m512i ones = _mm512_set1_epi64(1);
   __m512i amid;
+  __m512i aright = _mm512_set1_epi64(size); /* ignore - see Ed post */
+  __m512i amask;
+  __m512i datavec;
+  __mmask8 cmp;
 
-  //constant
-  __m512i aZero = _mm512_set1_epi64(0);
-  __m512i aOne = _mm512_set1_epi64(1);
-  __m512i aTwo = _mm512_set1_epi64(2);
-  __m512i aNOne = _mm512_set1_epi64(-1);
+  
+  while(_mm512_cmplt_epi64_mask(aleft,aright))
+    {
+      amid = _mm512_add_epi64 (aleft,aright);
+      amid = _mm512_srli_epi64 (amid,1); // divide by 2 */
 
-    /* YOUR CODE HERE */
-  while(1){
-    short check = _mm512_cmp_epi64_mask(aleft, aright, _MM_CMPINT_LT);
-#ifdef DEBUG
-    printf("check:%d\n", check);
-#endif
-    if(check <= 0){
-      break;
+      datavec = _mm512_i64gather_epi64 (amid, data, 8);
+      /*
+      printavx("aleft",aleft);
+      printavx("aright",aright);
+      printavx("amid",amid);
+      printavx("searchkey",*searchkey);
+      printavx("datavec",datavec);
+      */
+      
+      cmp = _mm512_cmpge_epi64_mask (datavec, searchkey);
+      aright = _mm512_mask_blend_epi64 (cmp, aright, amid);
+      aleft = _mm512_mask_blend_epi64 (cmp, _mm512_add_epi64(amid,ones), aleft);
     }
-    amid = _mm512_srlv_epi64(_mm512_add_epi64(aleft, aright), aOne);
-    __m512i amidPlusOne = _mm512_add_epi64(amid, aOne);
-
-    __m512i RightXorMid = _mm512_xor_epi64(aright, amid);
-    __m512i LeftXorMid = _mm512_xor_epi64(aleft, amidPlusOne);
-
-    int64_t mid[8];
-    _mm512_storeu_si512(mid, amid);
-#ifdef DEBUG
-    int64_t left[8];
-    int64_t right[8];
-    int64_t midTemp[8];
-    _mm512_storeu_si512(left, aleft);
-    _mm512_storeu_si512(right, aright);
-    for(int i = 0; i < 8; i++){
-      midTemp[i] = (left[i] + right[i]) / 2;
-      if(mid[i] != midTemp[i]){
-        printf("mid calculation failed with right mid: %ld and our mid: %ld!!!!!\n", midTemp[i], mid[i]);
-        goto End;
-      }
-    }
-#endif
-    __m512i dataAmid = _mm512_set_epi64(data[mid[7]], data[mid[6]], data[mid[5]], data[mid[4]], data[mid[3]], data[mid[2]], data[mid[1]], data[mid[0]]);
-    //data[mid[i]]>=searchkey[i]
-    //printavx("mid",dataAmid);
-    __m512i dataAmid_CmpNLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
-    searchkey, _MM_CMPINT_NLT), aOne, aZero);
-    __m512i dataAmid_CmpLT_SearchKey = _mm512_mask_blend_epi64(_mm512_cmp_epi64_mask(dataAmid,
-    searchkey, _MM_CMPINT_LT), aOne, aZero);
-    
-    //((data[mid[i]]>=searchkey[i])-1)
-    __m512i rightIf = _mm512_add_epi64(dataAmid_CmpNLT_SearchKey, aNOne);
-    //printavx("rightif",rightIf);
-    //((data[mid[i]]<searchkey[i])-1))
-    __m512i leftIf = _mm512_add_epi64(dataAmid_CmpLT_SearchKey, aNOne);
-#ifdef DEBUG
-    printavx("LT_SearchKey",dataAmid_CmpLT_SearchKey);
-    printavx("leftIf",leftIf);
-#endif
-
-
-    //((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)))
-    __m512i afterRightIf =_mm512_andnot_epi64(rightIf, RightXorMid);
-    __m512i afterLeftIf =_mm512_andnot_epi64(leftIf, LeftXorMid);
-    //right[i] ^ ((right[i] ^ mid[i]) & (~((data[mid[i]]>=searchkey[i])-1)));
-    __m512i arightTemp = _mm512_xor_epi64(aright, afterRightIf);
-    __m512i aleftTemp = _mm512_xor_epi64(aleft, afterLeftIf);
-
-    aright = arightTemp;
-    aleft = aleftTemp;
-  }
-
-End:
-  ;
+  *result = aright;
 }
+
 
 void bulk_binary_search(int64_t* data, int64_t size, int64_t* searchkeys, int64_t numsearches, int64_t* results, int repeats)
 {
@@ -494,6 +456,7 @@ End:
 
 int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t size, int64_t* outer_results, int64_t* inner_results, int64_t result_size, int64_t bound)
 {
+  
   /* In a band join we want matches within a range of values.  If p is the probe value from the outer table, then all
      reccords in the inner table with a key in the range [p-bound,p+bound] inclusive should be part of the result.
 
@@ -513,6 +476,19 @@ int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t si
   */
 
       /* YOUR CODE HERE */
+  register __m512i aOuter_8x;
+  register __m512i aInner_result;
+  register __m512i abound = _mm512_set1_epi64(-bound);
+  int64_t extras = outer_size % 8;
+  for(int64_t i=0;i<outer_size-extras; i+=8) {
+    aOuter_8x = _mm512_load_epi64(&outer[i]);
+    __m512i aOuter_Lower_8x = _mm512_add_epi64(aOuter_8x, abound);
+    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, &aInner_result);
+    //todo: chop result
+    for(){
+
+    }
+  }
 
 }
 	 
