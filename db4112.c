@@ -630,63 +630,63 @@ main(int argc, char *argv[])
 	   init(data,queries,arraysize);
 	   band_init(outer,outer_size);
 
-#ifdef DEBUG
-	   /* show the arrays */
-	   printf("data: ");
-	   for(int64_t i=0;i<arraysize;i++) printf("%ld ",data[i]);
-	   printf("\n");
-	   printf("queries: ");
-	   for(int64_t i=0;i<arraysize;i++) printf("%ld ",queries[i]);
-	   printf("\n");
-	   printf("outer: ");
-	   for(int64_t i=0;i<outer_size;i++) printf("%ld ",outer[i]);
-	   printf("\n");
-#endif
+// #ifdef DEBUG
+// 	   /* show the arrays */
+// 	   printf("data: ");
+// 	   for(int64_t i=0;i<arraysize;i++) printf("%ld ",data[i]);
+// 	   printf("\n");
+// 	   printf("queries: ");
+// 	   for(int64_t i=0;i<arraysize;i++) printf("%ld ",queries[i]);
+// 	   printf("\n");
+// 	   printf("outer: ");
+// 	   for(int64_t i=0;i<outer_size;i++) printf("%ld ",outer[i]);
+// 	   printf("\n");
+// #endif
 	   
 	   
-	   /* now measure... */
+// 	   /* now measure... */
 
-	   gettimeofday(&before,NULL);
+// 	   gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 0);
+// 	   /* the code that you want to measure goes here; make a function call */
+// 	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 0);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search loop normal is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+// 	   gettimeofday(&after,NULL);
+// 	   printf("Time in bulk_binary_search loop normal is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
-	   gettimeofday(&before,NULL);
+// 	   gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 1);
+// 	   /* the code that you want to measure goes here; make a function call */
+// 	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 1);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search loop arithmetic is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+// 	   gettimeofday(&after,NULL);
+// 	   printf("Time in bulk_binary_search loop arithmetic is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
-	   gettimeofday(&before,NULL);
+// 	   gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 2);
+// 	   /* the code that you want to measure goes here; make a function call */
+// 	   bulk_binary_search_type(data,arraysize,queries,arraysize,results, repeats, 2);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search loop mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+// 	   gettimeofday(&after,NULL);
+// 	   printf("Time in bulk_binary_search loop mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
 
-	   gettimeofday(&before,NULL);
+// 	   gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_8x_type(data,arraysize,queries,arraysize,results, repeats, 0);
+// 	   /* the code that you want to measure goes here; make a function call */
+// 	   bulk_binary_search_8x_type(data,arraysize,queries,arraysize,results, repeats, 0);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search_8x loop normal mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+// 	   gettimeofday(&after,NULL);
+// 	   printf("Time in bulk_binary_search_8x loop normal mask is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
 
-	   gettimeofday(&before,NULL);
+// 	   gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   bulk_binary_search_8x_type(data,arraysize,queries,arraysize,results, repeats, 1);
+// 	   /* the code that you want to measure goes here; make a function call */
+// 	   bulk_binary_search_8x_type(data,arraysize,queries,arraysize,results, repeats, 1);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Time in bulk_binary_search_8x loop AVX512 is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
+// 	   gettimeofday(&after,NULL);
+// 	   printf("Time in bulk_binary_search_8x loop AVX512 is %ld microseconds or %f microseconds per search\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/arraysize/repeats);
 
 	   
 	   gettimeofday(&before,NULL);
@@ -701,7 +701,15 @@ main(int argc, char *argv[])
 #ifdef DEBUG
 	   /* show the band_join results */
 	   printf("band_join results: ");
-	   for(int64_t i=0;i<total_results;i++) printf("(%ld,%ld) ",outer_results[i],inner_results[i]);
+	   //for(int64_t i=0;i<total_results;i++) printf("(%ld,%ld) ",outer_results[i],inner_results[i]);
+     for(int64_t i=0;i<total_results;i++){
+       int oval = outer[outer_results[i]];
+      if(oval-bound > inner_results[i] || inner_results[i] > oval+bound){
+        printf("band_join test: FAILED")
+        break;
+      }
+     }
+     printf("band_join test: SUCCEED")
 	   printf("\n");
 #endif
 
