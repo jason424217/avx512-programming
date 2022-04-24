@@ -477,19 +477,48 @@ int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t si
 
       /* YOUR CODE HERE */
   register __m512i aOuter_8x;
-  register __m512i aInner_result;
+  int64_t result[8];
+  int64_t count = 0;
   register __m512i abound = _mm512_set1_epi64(-bound);
   int64_t extras = outer_size % 8;
-  for(int64_t i=0;i<outer_size-extras; i+=8) {
+  int64_t i = 0;
+  for(;i < outer_size - extras; i+=8) {
     aOuter_8x = _mm512_load_epi64(&outer[i]);
     __m512i aOuter_Lower_8x = _mm512_add_epi64(aOuter_8x, abound);
-    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, &aInner_result);
-    //todo: chop result
-    for(){
-
+    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, (__m512i*) &inner_results[i]);
+    for(int64_t j = i; j < i+8; j++){
+      int64_t index = inner_results[j];
+      if(inner[index] > outer[j] + bound){
+        continue;
+      }
+      while(index < size && inner[index] <= outer[j] + bound){
+        outer_results[count] = j;
+        inner_results[count] = index;
+        count++;
+        if(count >= result_size){
+          return count;
+        }
+        index++;
+      }
     }
   }
-
+//inline int64_t lower_bound_nb_mask(int64_t* data, int64_t size, int64_t searchkey)
+  for(; i < outer_size; i++){
+    int64_t index = lower_bound_nb_mask(inner, size, outer[i] - bound);
+    if(inner[index] > outer[i] + bound){
+      continue;
+    }
+    while(index < size && inner[index] <= outer[i] + bound){
+      outer_results[count] = i;
+      inner_results[count] = index;
+      count++;
+      if(count >= result_size){
+        return count;
+      }
+      index++;
+    }
+  }
+  return count;
 }
 	 
 int64_t band_join_opt(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t size, int64_t* outer_results, int64_t* inner_results, int64_t result_size, int64_t bound)
