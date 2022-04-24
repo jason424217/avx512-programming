@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 /* uncomment out the following line for debug info during run */
-//#define DEBUG
+#define DEBUG
 //#define DEBUG_COMPARE
 
 /* compare two int64_t values - for use with qsort */
@@ -705,11 +705,10 @@ main(int argc, char *argv[])
      for(int64_t i=0;i<total_results;i++){
        int oval = outer[outer_results[i]];
       if(oval-bound > inner_results[i] || inner_results[i] > oval+bound){
-        printf("band_join test: FAILED")
+        printf("band_join test: FAILED");
         break;
       }
      }
-     printf("band_join test: SUCCEED")
 	   printf("\n");
 #endif
 
