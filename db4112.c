@@ -750,22 +750,24 @@ main(int argc, char *argv[])
 	   printf("Time in band_join loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
 
 
-    gettimeofday(&before,NULL);
+    // gettimeofday(&before,NULL);
 
-	   /* the code that you want to measure goes here; make a function call */
-	   total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
+	  //  /* the code that you want to measure goes here; make a function call */
+	  //  total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
 			      
-	   gettimeofday(&after,NULL);
-	   printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
-	   printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
+	  //  gettimeofday(&after,NULL);
+	  //  printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
+	  //  printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
 
 
 #ifdef DEBUG
 	   /* show the band_join results */
 	   //for(int64_t i=0;i<total_results;i++) printf("(%ld,%ld) ",outer_results[i],inner_results[i]);
      for(int64_t i=0;i<total_results;i++){
-       int oval = outer[outer_results[i]];
-      if(oval-bound > data[inner_results[i]] || data[inner_results[i]] > oval+bound){
+       int64_t oval = outer[outer_results[i]];
+       int64_t innval = data[inner_results[i]];
+      if(oval-bound > oval || oval+bound < oval) printf("Overflow!\n");
+      if(oval-bound > innval || innval > oval+bound){
         printf("band_join test: FAILED");
         break;
       }
