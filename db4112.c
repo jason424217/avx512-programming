@@ -477,7 +477,6 @@ int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t si
 
       /* YOUR CODE HERE */
   register __m512i aOuter_8x;
-  int64_t result[8];
   int64_t count = 0;
   register __m512i abound = _mm512_set1_epi64(-bound);
   int64_t extras = outer_size % 8;
@@ -768,7 +767,7 @@ main(int argc, char *argv[])
        int64_t innval = data[inner_results[i]];
       if(oval-bound > oval || oval+bound < oval) printf("Overflow!\n");
       if(oval-bound > innval || innval > oval+bound){
-        printf("band_join test: FAILED");
+        printf("band_join test of %ld: FAILED", i);
         break;
       }
      }
