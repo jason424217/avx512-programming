@@ -546,7 +546,58 @@ int64_t band_join_opt(int64_t* outer, int64_t outer_size, int64_t* inner, int64_
   */
   
       /* YOUR CODE HERE */
-
+  register __m512i aOuter_8x;
+  int64_t temp_result[8];
+  int64_t count = 0;
+  register __m512i abound = _mm512_set1_epi64(-bound);
+  register __m512i abound2 = _mm512_set1_epi64(bound+1);
+  int64_t extras = outer_size % 8;
+  int64_t i = 0;
+  for(;i < outer_size - extras; i+=8) {
+    aOuter_8x = _mm512_load_epi64(&outer[i]);
+    __m512i aOuter_Lower_8x = _mm512_add_epi64(aOuter_8x, abound);
+    __m512i aOuter_Upper_8x = _mm512_add_epi64(aOuter_8x, abound2);
+    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, (__m512i*) &inner_results[i]);
+    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Upper_8x, (__m512i*) &temp_result);
+    for(int64_t j = i; j < i+8; j++){
+      int64_t index = inner_results[j];
+      int64_t upIndex = temp_result[j-i];
+      if(inner[index] > outer[j] + bound){
+        continue;
+      }
+      if(upIndex < index){
+        upIndex = size;
+      }
+      for(int k = index; k < upIndex; k++){
+        outer_results[count] = j;
+        inner_results[count] = k;
+        count++;
+        if(count >= result_size){
+          return count;
+        }
+      }
+    }
+  }
+//inline int64_t lower_bound_nb_mask(int64_t* data, int64_t size, int64_t searchkey)
+  for(; i < outer_size; i++){
+    int64_t index = lower_bound_nb_mask(inner, size, outer[i] - bound);
+    int64_t upIndex = lower_bound_nb_mask(inner, size, outer[i] + bound + 1);
+    if(inner[index] > outer[i] + bound){
+      continue;
+    }
+    if(upIndex < index){
+      upIndex = size;
+    }
+    for(int k = index; k < upIndex; k++){
+      outer_results[count] = i;
+      inner_results[count] = k;
+      count++;
+      if(count >= result_size){
+        return count;
+      }
+    }
+  }
+  return count;
 }
 
 int
@@ -698,13 +749,24 @@ main(int argc, char *argv[])
 	   printf("Band join result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
 	   printf("Time in band_join loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
 
+
+    gettimeofday(&before,NULL);
+
+	   /* the code that you want to measure goes here; make a function call */
+	   total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
+			      
+	   gettimeofday(&after,NULL);
+	   printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
+	   printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
+
+
 #ifdef DEBUG
 	   /* show the band_join results */
-	   printf("band_join results: ");
+	   printf("band_join_opt start\n");
 	   //for(int64_t i=0;i<total_results;i++) printf("(%ld,%ld) ",outer_results[i],inner_results[i]);
      for(int64_t i=0;i<total_results;i++){
        int oval = outer[outer_results[i]];
-      if(oval-bound > inner_results[i] || inner_results[i] > oval+bound){
+      if(oval-bound > inner_results[i] || oval+bound < inner_results[i]){
         printf("band_join test: FAILED");
         break;
       }
