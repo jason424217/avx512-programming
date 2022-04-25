@@ -478,19 +478,21 @@ int64_t band_join(int64_t* outer, int64_t outer_size, int64_t* inner, int64_t si
       /* YOUR CODE HERE */
   register __m512i aOuter_8x;
   int64_t count = 0;
+  int64_t temp_result[8];
   register __m512i abound = _mm512_set1_epi64(-bound);
   int64_t extras = outer_size % 8;
   int64_t i = 0;
   for(;i < outer_size - extras; i+=8) {
     aOuter_8x = _mm512_load_epi64(&outer[i]);
     __m512i aOuter_Lower_8x = _mm512_add_epi64(aOuter_8x, abound);
-    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, (__m512i*) &inner_results[i]);
+    lower_bound_nb_mask_8x_AVX512(inner, size, aOuter_Lower_8x, (__m512i*) &temp_result[i]);
     for(int64_t j = i; j < i+8; j++){
-      int64_t index = inner_results[j];
-      if(inner[index] > outer[j] + bound){
+      int64_t index = temp_result[j];
+      int64_t upBound = outer[j] + bound;
+      if(inner[index] > upBound){
         continue;
       }
-      while(index < size && inner[index] <= outer[j] + bound){
+      while(index < size && inner[index] <= upBound){
         outer_results[count] = j;
         inner_results[count] = index;
         count++;
