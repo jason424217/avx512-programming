@@ -752,14 +752,14 @@ main(int argc, char *argv[])
 	   printf("Time in band_join loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
 
 
-    // gettimeofday(&before,NULL);
+    gettimeofday(&before,NULL);
 
-	  //  /* the code that you want to measure goes here; make a function call */
-	  //  total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
+	   /* the code that you want to measure goes here; make a function call */
+	   total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
 			      
-	  //  gettimeofday(&after,NULL);
-	  //  printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
-	  //  printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
+	   gettimeofday(&after,NULL);
+	   printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
+	   printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
 
 
 #ifdef DEBUG
