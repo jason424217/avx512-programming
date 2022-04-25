@@ -748,9 +748,8 @@ main(int argc, char *argv[])
 	   total_results=band_join(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
 			      
 	   gettimeofday(&after,NULL);
-	   printf("Band join result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
-	   printf("Time in band_join loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
-
+     printf("Band join result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
+     printf("Time in band_join loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/(1.0+outer_results[total_results-1]));
 
     gettimeofday(&before,NULL);
 
@@ -758,9 +757,8 @@ main(int argc, char *argv[])
 	   total_results=band_join_opt(outer, outer_size, data, arraysize, outer_results, inner_results, result_size, bound);
 			      
 	   gettimeofday(&after,NULL);
-	   printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
-	   printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/outer_size);
-
+     printf("Band join opt result size is %ld with an average of %f matches per output record\n",total_results, 1.0*total_results/(1.0+outer_results[total_results-1]));
+     printf("Time in band_join_opt loop is %ld microseconds or %f microseconds per outer record\n", (after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec), 1.0*((after.tv_sec-before.tv_sec)*1000000+(after.tv_usec-before.tv_usec))/(1.0+outer_results[total_results-1]));
 
 #ifdef DEBUG
 	   /* show the band_join results */
