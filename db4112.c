@@ -762,11 +762,10 @@ main(int argc, char *argv[])
 
 #ifdef DEBUG
 	   /* show the band_join results */
-	   printf("band_join_opt start\n");
 	   //for(int64_t i=0;i<total_results;i++) printf("(%ld,%ld) ",outer_results[i],inner_results[i]);
      for(int64_t i=0;i<total_results;i++){
        int oval = outer[outer_results[i]];
-      if(oval-bound > inner_results[i] || oval+bound < inner_results[i]){
+      if(oval-bound > data[inner_results[i]] || data[inner_results[i]] > oval+bound){
         printf("band_join test: FAILED");
         break;
       }
